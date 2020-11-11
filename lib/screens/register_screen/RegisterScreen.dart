@@ -1,4 +1,6 @@
 import 'package:Evity/screens/main_screen/MainScreen.dart';
+import 'package:Evity/widgets/form_text_fields/EmailTextField.dart';
+import 'package:Evity/widgets/form_text_fields/PasswordTextField.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,9 +17,6 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   static const String LOGO_SVG_STRING = './lib/assets/logo.svg';
-  static const String USERNAME_TEXT_FIELD = 'Email';
-  static const String PASSWORD_TEXT_FIELD = 'Password';
-  static const String CONFIRM_PASSWORD_TEXT_FIELD = 'Confirm Password';
 
   static const String CREATE_ACCOUNT_STRING = 'CREATE AN ACCOUNT';
   static const String SIGN_IN_STRING = 'HAVE AN ACCOUNT? SIGN IN';
@@ -58,8 +57,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _username, password: _password);
       _redirectToMainScreen();
     } catch (e) {
+      print(e);
       if (e.code == 'ERROR_EMAIL_ALREADY_IN_USE') {
         _registerResult = 'The email address is already in use by another account.';
+      } else if (e.code == 'ERROR_WEAK_PASSWORD') {
+        _registerResult = 'Please use a stronger password.';
       }
     }
     return setState(() {
@@ -84,83 +86,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: <Widget>[
                   Container(
                     width: double.infinity,
-                    child: TextFormField(
-                      cursorColor: onyx,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        hintText: USERNAME_TEXT_FIELD,
-                        prefixIcon: Icon(Icons.email, color: oxfordBlue.shade600),
-                        prefixIconConstraints: BoxConstraints.tight(Size(36, 24)),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: onyx),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: oxfordBlue, width: 1.5),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        return (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) ? "Email format is not valid" : null;
-                      },
-                      onSaved: (String value) {
-                        _username = value;
-                      },
-                    ),
+                    child: EmailTextField((value) => _username = value),
                   ),
                   SizedBox(
                     height: 8,
                   ),
                   Container(
                     width: double.infinity,
-                    child: TextFormField(
-                      key: _passKey,
-                      cursorColor: onyx,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        hintText: PASSWORD_TEXT_FIELD,
-                        prefixIcon: Icon(Icons.chevron_right, color: oxfordBlue.shade600),
-                        prefixIconConstraints: BoxConstraints.tight(Size(36, 24)),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: onyx),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: oxfordBlue, width: 1.5),
-                        ),
-                      ),
-                      keyboardType: TextInputType.visiblePassword,
-                      validator: (value) {
-                        return (value.length < 6) ? "Password must be at least 6 characters long" : null;
-                      },
-                      onSaved: (String value) {
-                        _password = value;
-                      },
-                    ),
+                    child: PasswordTextField((value) => _password = value, _passKey, false),
                   ),
                   SizedBox(
                     height: 8,
                   ),
                   Container(
                     width: double.infinity,
-                    child: TextFormField(
-                      cursorColor: onyx,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        hintText: CONFIRM_PASSWORD_TEXT_FIELD,
-                        prefixIcon: Icon(Icons.chevron_right, color: oxfordBlue.shade600),
-                        prefixIconConstraints: BoxConstraints.tight(Size(36, 24)),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: onyx),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: oxfordBlue, width: 1.5),
-                        ),
-                      ),
-                      keyboardType: TextInputType.visiblePassword,
-                      validator: (value) {
-                        var password = _passKey.currentState.value;
-                        return (password != value) ? "Passwords do not match" : null;
-                      },
-                    ),
+                    child: PasswordTextField((value) => _password = value, _passKey, true),
                   ),
                   _registrationError ? Padding(padding: EdgeInsets.only(top: 24), child: Text(_registerResult, style: TextStyle(color: rubyRed))) : SizedBox(height: 8),
                   SizedBox(

@@ -15,6 +15,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Material(
       child: Container(
+        key: Key('main-screen'),
         padding: EdgeInsets.only(left: 32, right: 32, top: 0),
         color: platinum,
         child: Text('Main Screen'),

@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// Utils
 import 'package:Evity/styles/colors.dart';
 
+// Screens
 import 'package:Evity/screens/register_screen/RegisterScreen.dart';
 import 'package:Evity/screens/main_screen/MainScreen.dart';
+
+// Widgets
+import 'package:Evity/widgets/form_text_fields/EmailTextField.dart';
+import 'package:Evity/widgets/form_text_fields/PasswordTextField.dart';
 
 // Welcome/Login Screen
 class WelcomeScreen extends StatefulWidget {
@@ -16,19 +22,24 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  static const String USERNAME_TEXT_FIELD = 'Email';
-  static const String PASSWORD_TEXT_FIELD = 'Password';
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  // Constants
   static const String SIGN_IN_STRING = 'SIGN IN';
   static const String CREATE_ACCOUNT_STRING = 'CREATE AN ACCOUNT';
   static const String APP_SLOGAN = 'Personal Expense Tracker';
   static const double BUTTON_HEIGHT = 48;
 
-  final _formKey = GlobalKey<FormState>();
+  // Widgets
+  Widget emailFormFieldText = EmailTextField((value) => _username = value);
+  Widget passwordFormFieldText = PasswordTextField((value) => _password = value, null, false);
 
-  FirebaseAuth auth = FirebaseAuth.instance;
+  // Form
+  final _formKey = GlobalKey<FormState>();
 
   static var _username;
   static var _password;
+
   static bool _loginError = false;
   static String _loginErrorString;
 
@@ -60,7 +71,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         },
       ),
     );
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
   }
 
   _redirectToMainScreen() {
@@ -80,11 +90,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       } catch (e) {
         print(e);
         if (e.code == 'ERROR_USER_NOT_FOUND') {
-          _loginErrorString = 'No user found for that email.';
+          _loginErrorString = 'No user found with the given email address';
         } else if (e.code == 'ERROR_WRONG_PASSWORD') {
-          _loginErrorString = 'Wrong password provided for that user.';
+          _loginErrorString = 'Wrong password provided for that user';
         } else if (e.code == 'ERROR_INVALID_EMAIL') {
-          _loginErrorString = 'Email was not valid. Please enter a valid email.';
+          _loginErrorString = 'Email provided was not valid. Please enter a valid email.';
         } else {
           _loginErrorString = 'Unknown error. Please try again.';
         }
@@ -133,52 +143,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: <Widget>[
                     Container(
                       margin: EdgeInsets.symmetric(vertical: 2),
-                      child: TextFormField(
-                        cursorColor: onyx,
-                        decoration: InputDecoration(
-                          hintText: USERNAME_TEXT_FIELD,
-                          focusColor: onyx,
-                          prefixIcon: Icon(Icons.email, color: oxfordBlue.shade600),
-                          prefixIconConstraints: BoxConstraints.tight(Size(36, 24)),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: onyx),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: oxfordBlue, width: 1.5),
-                          ),
-                        ),
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          return (value.isEmpty) ? 'Email cannot be blank' : null;
-                        },
-                        onSaved: (String value) {
-                          _username = value;
-                        },
-                      ),
+                      child: emailFormFieldText,
                     ),
                     Container(
                       margin: EdgeInsets.symmetric(vertical: 2),
-                      child: TextFormField(
-                        cursorColor: onyx,
-                        decoration: InputDecoration(
-                          hintText: PASSWORD_TEXT_FIELD,
-                          prefixIcon: Icon(Icons.chevron_right, color: oxfordBlue.shade600),
-                          prefixIconConstraints: BoxConstraints.tight(Size(36, 24)),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: onyx),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: oxfordBlue, width: 1.5),
-                          ),
-                        ),
-                        keyboardType: TextInputType.visiblePassword,
-                        validator: (value) {
-                          return (value.isEmpty) ? 'Password cannot be blank' : null;
-                        },
-                        onSaved: (String value) {
-                          _password = value;
-                        },
-                      ),
+                      child: passwordFormFieldText,
                     ),
                   ],
                 ),
@@ -194,6 +163,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: double.infinity,
                   height: BUTTON_HEIGHT,
                   child: FlatButton(
+                    key: Key('sign-in-btn'),
                     color: oxfordBlue,
                     onPressed: () => _validateLogin(),
                     child: Text(
@@ -207,6 +177,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: double.infinity,
                   height: BUTTON_HEIGHT,
                   child: OutlineButton(
+                    key: Key('create-account-btn'),
                     onPressed: () => _redirectToRegisterScreen(),
                     child: Text(
                       CREATE_ACCOUNT_STRING,
