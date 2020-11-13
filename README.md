@@ -1,4 +1,6 @@
 #  EVITY - Personalized Expense Tracker
+![Build Status](https://github.com/hjiangsu/evity/workflows/evity-main/badge.svg)
+![Build Status](https://github.com/hjiangsu/evity/workflows/evity-develop/badge.svg)
 
 Evity is an expense tracker made from Flutter.
 Evity aims to create a convenient way to manage your budgets,
