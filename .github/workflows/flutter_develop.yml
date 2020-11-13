@@ -1,9 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
+name: Flutter CI - develop
 
 # Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the develop branch
 on:
   push:
     branches: [ develop ]
@@ -20,13 +17,17 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: develop
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
-    - name: Flutter action
-      # You may pin to the exact commit or the version.
-      uses: subosito/flutter-action@v1.4.0
+    - uses: subosito/flutter-action@v1.4.0
+      
+    # Run flutter commands
     - run: flutter pub get
+    - run: flutter format --set-exit-if-changed .
+    - run: flutter analyze .
     - run: flutter test
-    - run: flutter build apk
+#     - run: flutter build apk
 
