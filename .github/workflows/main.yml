@@ -23,9 +23,9 @@ jobs:
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
-    - uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '1.9.1+hotfix.6'
+    - name: Flutter action
+      # You may pin to the exact commit or the version.
+      uses: subosito/flutter-action@v1.4.0
     - run: flutter pub get
     - run: flutter test
     - run: flutter build apk
