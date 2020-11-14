@@ -64,6 +64,11 @@ class Evity extends StatelessWidget {
           return MaterialApp(
             title: 'Evity',
             home: WelcomeScreen(),
+            theme: ThemeData(
+              primarySwatch: oxfordBlue,
+              primaryColor: onyx,
+              accentColor: oxfordBlue,
+            ),
           );
         }
 

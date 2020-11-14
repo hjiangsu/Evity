@@ -26,6 +26,7 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
   static const List<String> categoryList = ['Entertainment', 'Food', 'School', 'Utilities', 'Groceries', 'Home', 'Transportation', 'Misc'];
 
   String _uid;
+  String _note;
   double _amount = 0;
   DateTime _date = DateTime.now();
   String _category = categoryList[0];
@@ -57,7 +58,7 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
 
   void _createNewExpenseRecord() async {
     _formKey.currentState.save();
-    expenses.add({'amount': _amount, 'category': _category, 'date': _date, 'user': _uid}).then((value) => print("Expense Added"));
+    expenses.add({'amount': _amount, 'category': _category, 'date': _date, 'user': _uid, 'note': _note}).then((value) => print("Expense Added"));
   }
 
   @override
@@ -79,9 +80,10 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
                   child: TextFormField(
                     decoration: InputDecoration(
                       hintText: 'Amount',
-                      prefixIcon: Icon(Icons.attach_money, color: onyx),
+                      prefixIcon: Icon(Icons.attach_money, color: oxfordBlue.shade600),
                       enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 1.5)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 2)),
+                      prefixIconConstraints: BoxConstraints.tight(Size(40, 24)),
                     ),
                     textAlignVertical: TextAlignVertical.center,
                     keyboardType: TextInputType.number,
@@ -92,9 +94,10 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
                   padding: EdgeInsets.only(bottom: 8),
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.category, color: onyx),
+                      prefixIcon: Icon(Icons.category, color: oxfordBlue.shade600),
                       enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 1.5)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 2)),
+                      prefixIconConstraints: BoxConstraints.tight(Size(40, 24)),
                     ),
                     value: _category,
                     onChanged: (String value) => setState(() => _category = value),
@@ -108,8 +111,30 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
                     initialValue: _date.toIso8601String(),
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
-                    decoration: InputDecoration(prefixIcon: Icon(Icons.date_range, color: onyx)),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.date_range, color: oxfordBlue.shade600),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 2)),
+                      prefixIconConstraints: BoxConstraints.tight(Size(40, 24)),
+                    ),
                     onSaved: (value) => _date = DateTime.parse(value),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: TextFormField(
+                    key: Key('note-field'),
+                    cursorColor: onyx,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                      hintText: 'Notes',
+                      prefixIcon: Icon(Icons.note_add, color: oxfordBlue.shade600),
+                      prefixIconConstraints: BoxConstraints.tight(Size(40, 24)),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 2)),
+                    ),
+                    keyboardType: TextInputType.visiblePassword,
+                    onSaved: (String value) => _note = value,
                   ),
                 ),
                 Expanded(
