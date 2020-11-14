@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_time_picker/date_time_picker.dart';
 
 // Colors
 import 'package:Evity/styles/colors.dart';
@@ -15,26 +16,28 @@ class ExpenseDialog extends StatefulWidget {
 class _ExpenseDialogState extends State<ExpenseDialog> {
   // Form related controllers and keys
   final _formKey = GlobalKey<FormState>();
-  final _amountTextFieldController = TextEditingController();
+
+  CollectionReference expenses = FirebaseFirestore.instance.collection('Expenses');
 
   static const String EXPENSE_DIALOG_TITLE = 'ADD NEW EXPENSE';
   static const String EXPENSE_DIALOG_CREATE = 'Add Expense';
 
   // Hopefully grab from enum later on
   static const List<String> categoryList = ['Entertainment', 'Food', 'School', 'Utilities', 'Groceries', 'Home', 'Transportation', 'Misc'];
-  static const List<String> currencyList = ['CAD', 'USD'];
 
-  String currentCategory = categoryList[0];
-  String currentCurrency = currencyList[0];
-  double amount = 0;
+  String _uid;
+  double _amount = 0;
   DateTime _date = DateTime.now();
+  String _category = categoryList[0];
 
   List<DropdownMenuItem<String>> _categoryDropdownMenuList;
-  final format = DateFormat("yMMMMd");
 
   @override
   void initState() {
     super.initState();
+
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User user = auth.currentUser;
 
     List<DropdownMenuItem<String>> categoryDropdownMenuList = categoryList.map((String category) {
       return DropdownMenuItem<String>(
@@ -49,28 +52,22 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
       );
     }).toList();
 
-    setState(() {
-      _categoryDropdownMenuList = categoryDropdownMenuList;
-    });
+    setState(() => {_categoryDropdownMenuList = categoryDropdownMenuList, _uid = user.uid});
   }
 
-  @override
-  void dispose() {
-    _amountTextFieldController.dispose();
-    super.dispose();
+  void _createNewExpenseRecord() async {
+    _formKey.currentState.save();
+    expenses.add({'amount': _amount, 'category': _category, 'date': _date, 'user': _uid}).then((value) => print("Expense Added"));
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(
-        EXPENSE_DIALOG_TITLE,
-        style: TextStyle(color: oxfordBlue),
-      ),
+      title: Text(EXPENSE_DIALOG_TITLE, style: TextStyle(color: oxfordBlue)),
       insetPadding: EdgeInsets.all(24),
       content: Container(
         width: 600,
-        height: 250,
+        height: 350,
         child: Form(
           key: _formKey,
           child: IntrinsicWidth(
@@ -78,69 +75,42 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Amount',
-                            contentPadding: EdgeInsets.all(0.0),
-                          ),
-                          controller: _amountTextFieldController,
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: DropdownButtonFormField<String>(
-                          value: currentCurrency,
-                          isExpanded: true,
-                          onChanged: (String newCurrency) {
-                            setState(() {
-                              currentCurrency = newCurrency;
-                            });
-                          },
-                          items: currencyList.map((String currency) {
-                            return DropdownMenuItem<String>(
-                              value: currency,
-                              child: Text(currency),
-                            );
-                          }).toList(),
-                        ),
-                      )
-                    ],
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      hintText: 'Amount',
+                      prefixIcon: Icon(Icons.attach_money, color: onyx),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 1.5)),
+                    ),
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.number,
+                    onSaved: (String value) => _amount = double.parse(value),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 4),
+                  padding: EdgeInsets.only(bottom: 8),
                   child: DropdownButtonFormField<String>(
-                    value: currentCategory,
-                    isExpanded: true,
-                    onChanged: (String newCategory) {
-                      setState(() {
-                        currentCategory = newCategory;
-                      });
-                    },
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.category, color: onyx),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: onyx)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: oxfordBlue, width: 1.5)),
+                    ),
+                    value: _category,
+                    onChanged: (String value) => setState(() => _category = value),
+                    onSaved: (String value) => _category = value,
                     items: _categoryDropdownMenuList,
                   ),
                 ),
-                DateTimeField(
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 18),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: DateTimePicker(
+                    initialValue: _date.toIso8601String(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    decoration: InputDecoration(prefixIcon: Icon(Icons.date_range, color: onyx)),
+                    onSaved: (value) => _date = DateTime.parse(value),
                   ),
-                  format: format,
-                  initialValue: _date,
-                  resetIcon: null,
-                  onShowPicker: (context, currentValue) async {
-                    _date = await showDatePicker(context: context, firstDate: DateTime(1900), initialDate: currentValue ?? DateTime.now(), lastDate: DateTime(2100));
-
-                    if (_date == null) {
-                      return currentValue;
-                    }
-                    return _date;
-                  },
                 ),
                 Expanded(
                   child: Column(
@@ -150,12 +120,8 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
                     children: [
                       FlatButton(
                         onPressed: () async {
-                          try {
-                            // await _createNewExpenseRecord();
-                            Navigator.pop(context);
-                          } catch (err) {
-                            print(err);
-                          }
+                          _createNewExpenseRecord();
+                          Navigator.pop(context);
                         },
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),
@@ -178,18 +144,4 @@ class _ExpenseDialogState extends State<ExpenseDialog> {
       ),
     );
   }
-
-  // Future _createNewExpenseRecord() async {
-  //   final double amount = double.parse(_amountTextFieldController.text);
-  //   final String dateTimeUTC = _date.toUtc().toIso8601String();
-  //   final expense = Expense(id: 1, category: currentCategory, amount: amount, currency: currentCurrency, dateTimeUTC: dateTimeUTC);
-
-  //   try {
-  //     await DBProvider.db.newExpense(expense);
-  //     Provider.of<ExpenseListModel>(context, listen: false).updateExpenses();
-  //     print('Expense has been added to database');
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
 }
